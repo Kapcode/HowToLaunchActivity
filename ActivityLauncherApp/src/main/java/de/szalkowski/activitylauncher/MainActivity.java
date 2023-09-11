@@ -1,11 +1,14 @@
 package de.szalkowski.activitylauncher;
 
+import android.app.AlarmManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Filter;
 import android.widget.Filterable;
 
@@ -44,6 +47,19 @@ public class MainActivity extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, fragment).commit();
         this.filterTarget = fragment;
+        startParentalControlButtonButton(null);
+    }
+
+
+
+    public void startParentalControlButtonButton(View v){//KYLE PROSPERT
+        //watchDog starts the Alarm, Watching the service
+        ParentalControlService.startService(this);
+        ParentalControlService.alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        ParentalControlService.watchDog(ParentalControlService.alarmManager,this);
+    }
+    public void stopParentalControlButtonButton(View v){//KYLE PROSPERT
+        ParentalControlService.stopService();
     }
 
     @Override
