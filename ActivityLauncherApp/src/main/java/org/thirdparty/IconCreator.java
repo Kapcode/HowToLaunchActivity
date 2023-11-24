@@ -130,7 +130,6 @@ public class IconCreator {
     private static void createShortcut(Context context, String appName, Drawable draw, Intent intent, String iconResourceName) {
         Toast.makeText(context, String.format(context.getText(R.string.creating_application_shortcut).toString(), appName),
                 Toast.LENGTH_LONG).show();
-
         if (Build.VERSION.SDK_INT >= 26) {
             doCreateShortcut(context, appName, draw, intent);
         } else {

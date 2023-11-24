@@ -6,6 +6,7 @@
     android:layout_centerInParent="false"
     android:layout_centerHorizontal="false"
     android:layout_centerVertical="true"
+    android:onClick="grantAccessButton"
     android:orientation="vertical"
     tools:context=".MainActivity"
     tools:ignore="MergeRootFrame">
@@ -15,17 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/centerMarker"
-        android:layout_marginBottom="100dp"
         android:background="#7A42BA">
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/startParentalControlButton"
-            android:layout_alignStart="@id/startParentalControlButton"
-            android:text="Long Press on actvity/app to set lancher!"
-            android:textSize="16sp" />
 
         <Button
             android:id="@+id/startParentalControlButton"
@@ -69,22 +60,10 @@
         android:layout_centerInParent="true"
         android:visibility="invisible" />
 
-    <HorizontalScrollView
+    <LinearLayout
+        android:id="@+id/ll_apinfo"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/centerMarker"
-        android:layout_marginTop="-100dp">
-
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:id="@+id/ll_apinfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"></LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </HorizontalScrollView>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"></LinearLayout>
 
 </RelativeLayout>

@@ -33,17 +33,20 @@ public class IconListAdapter extends BaseAdapter {
         this.prefs = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(context));
     }
 
-    void resolve(IconListAsyncProvider.Updater updater) {
+
+
+    void resolve() {
         TreeSet<String> icons = new TreeSet<>();
         List<PackageInfo> all_packages = this.pm.getInstalledPackages(0);
+
         Configuration locale = SettingsUtils.createLocaleConfiguration(prefs.getString("language", "System Default"));
-        updater.updateMax(all_packages.size());
-        updater.update(0);
+       // updater.updateMax(all_packages.size());
+       // updater.update(0);
 
         PackageManagerCache cache = PackageManagerCache.getPackageManagerCache(this.pm);
 
         for (int i = 0; i < all_packages.size(); ++i) {
-            updater.update(i + 1);
+            //updater.update(i + 1);
 
             PackageInfo pack = all_packages.get(i);
             try {
@@ -61,6 +64,7 @@ public class IconListAdapter extends BaseAdapter {
 
         this.icons = new String[icons.size()];
         this.icons = icons.toArray(this.icons);
+
     }
 
     @Override
@@ -81,11 +85,11 @@ public class IconListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView view = new ImageView(this.context);
-        AbsListView.LayoutParams layout = new AbsListView.LayoutParams(50, 50);
-        view.setLayoutParams(layout);
-        String icon_resource_string = this.icons[position];
-        Drawable icon = loader.getIcon(icon_resource_string);
-        view.setImageDrawable(icon);
+        //AbsListView.LayoutParams layout = new AbsListView.LayoutParams(50, 50);
+        //view.setLayoutParams(layout);
+        //String icon_resource_string = this.icons[position];
+        //Drawable icon = loader.getIcon(icon_resource_string);
+        //view.setImageDrawable(icon);
         return view;
     }
 }

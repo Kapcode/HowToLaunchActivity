@@ -26,6 +26,7 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
         myInfo.package_name = info.packageName;
         ApplicationInfo app = info.applicationInfo;
 
+
         if (app != null) {
             myInfo.name = getLocalizedName(config, pm, myInfo, app);
             try {
