@@ -1,24 +1,18 @@
-[![Debug Build](https://github.com/butzist/ActivityLauncher/actions/workflows/android-master.yml/badge.svg)](https://github.com/butzist/ActivityLauncher/actions/workflows/android-master.yml)
-[![Release Build](https://github.com/butzist/ActivityLauncher/actions/workflows/android-release.yml/badge.svg)](https://github.com/butzist/ActivityLauncher/actions/workflows/android-release.yml)
-[![Crowdin](https://badges.crowdin.net/activitylauncher/localized.svg)](https://crowdin.com/project/activitylauncher)
-[![Gitter Chat](https://badges.gitter.im/ActivityLauncher/community.svg)](https://gitter.im/ActivityLauncher/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+//TODO FIX SPELLING
+Now code to: (all separate things)
 
-Activity Launcher
-=================
+start service in background
+    
+    that stays alive with a watchdog AlarmResciver
+    watches for foreground activity to change, Knows its package name.
+    launch app(amazon launcher home screen) --https://github.com/butzist/ActivityLauncher.
 
-Create shortcuts for any installed app and even hidden activities to launch them with ease.
 
-<a href="https://f-droid.org/packages/de.szalkowski.activitylauncher/" target="_blank">
-<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="80"/></a>
-<a href="https://play.google.com/store/apps/details?id=de.szalkowski.activitylauncher" target="_blank">
-<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" alt="Get it on Google Play" height="80"/></a>
+Now I need to put them together to make a parental control app that can make use of code base included in forked code from https://github.com/butzist/ActivityLauncher.
 
-Contributing
-------------
+need to incorperate blacklist/whitelist, populate ViewGroup of installed apps, like already done in MainActivity https://github.com/butzist/ActivityLauncher, In my own ways, using their methods for getting info on activitys, and starting them.
 
-**The project is looking for co-maintainers!** See [here](https://github.com/butzist/ActivityLauncher/issues/51)
 
-Translations
-------------
+This repo is an intermedate project, It will be merged into https://github.com/Kapcode/Android-Parental-Controls at end. That is the plan in the end anyways.
 
-The [Crowdin project](https://crowdin.com/project/ActivityLauncher) contains detailed credits for the translations and allows anyone to contribute by translating the app.
+
