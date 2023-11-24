@@ -14,12 +14,12 @@ public class MyAlarmReceiver extends BroadcastReceiver {//MADE NOT PUBLIC, CAUSE
         if(!ParentalControlService.serviceStoppedByUser.get() && !ParentalControlService.serviceIsRunning.get()){
             //Restart It Here
             System.out.println("Restart Code Here TODO");
-            ParentalControlService.startService(ParentalControlService.s.getApplication().getApplicationContext());
+            ParentalControlService.startService(context);
         }else{
             System.out.println("All Good");
         }
         //start watchdog again.
-        ParentalControlService.watchDog(ParentalControlService.alarmManager,ParentalControlService.s.getApplication().getApplicationContext());
+        ParentalControlService.watchDog(ParentalControlService.alarmManager,context);
 
     }
 

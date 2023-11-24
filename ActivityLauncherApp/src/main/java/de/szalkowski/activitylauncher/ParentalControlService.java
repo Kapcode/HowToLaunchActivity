@@ -53,6 +53,8 @@ public class ParentalControlService extends Service {
 
     private static ArrayList<MyPackageInfo> blocked_packages = new ArrayList<>();
     private static HashMap<String, MyPackageInfo> blocked_packages_map = new HashMap<>();
+
+    static HashMap<String,Boolean> taskMap_BLOCKED = new HashMap<>();
     public static List<MyPackageInfo> all_packages;//is set at end of loading in all packages AllTaskListAddapter.resolve(AllTasksListAsyncProvider.Updater updater)
     static PendingIntent pendingWatchDogIntent;
     static Intent watchDogIntent;
@@ -67,34 +69,10 @@ public class ParentalControlService extends Service {
     static SharedPreferences prefs;
     static List<MyPackageInfo> packages;
 
-    public static synchronized void addBlockedPackage(MyPackageInfo myPackageInfo) {
-        if (!blocked_packages.contains(myPackageInfo)) {
-            MainActivity.mainActivity.stopParentalControlButtonButton(null);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            blocked_packages.add(myPackageInfo);
-            blocked_packages_map.put(myPackageInfo.package_name, myPackageInfo);
-        }
-        MainActivity.mainActivity.startParentalControlButtonButton(null);
-    }
 
-    public static synchronized void removeBlockedPackage(MyPackageInfo myPackageInfo) {
-        if (blocked_packages.contains(myPackageInfo)) {
-            MainActivity.mainActivity.stopParentalControlButtonButton(null);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
 
-            blocked_packages.remove(myPackageInfo);
-            blocked_packages_map.remove(myPackageInfo);
-        }
-        MainActivity.mainActivity.startParentalControlButtonButton(null);
-    }
+
+
 
 
     @Override
@@ -131,19 +109,23 @@ public class ParentalControlService extends Service {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int loop = 25;
+                int loop = 100;//test watchdog
                 while (serviceIsRunning.get() && loop > 0) { //loop counting down to 0 is simulating android killing off service, or end of work,
                     // you can use this to test watch dog, or to simulate end of work
                     System.out.println(loop);
                     loop--;
                     try {//should block plex app.
-                        if (getForegroundTask().equals("com.plexapp.android"))//todo change to startsWith ?  ... has to do with not adding activities[] in populating step
-                            Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);//chosen from ui, derived from ComponentName.unflattenFromString()
+                        if(taskMap_BLOCKED.get(getForegroundTask())){
+                            //the value is a boolean, true means app is blocked.
+                            Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
+                            //false means app is okay.
 
+                        }
+                            //chosen from ui, derived from ComponentName.unflattenFromString()
                         //blocked_packages_map.get("");
                         //go to com.amazon.firelauncher.Launcher .. amazon homescreen
                         printForegroundTask();
-                        Thread.sleep(10000);
+                        Thread.sleep(2000);
 
                     } catch (InterruptedException e) {
 
@@ -291,6 +273,8 @@ public class ParentalControlService extends Service {
         for (MyPackageInfo myPackageInfo : all_packages) {
             MyActivityInfo[] activities = myPackageInfo.activities;
             System.out.println("" + myPackageInfo.package_name);
+            taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),false);
+
             Drawable drawable = null;
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -323,12 +307,7 @@ public class ParentalControlService extends Service {
                 iv.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        if (checkBox.isChecked()) {
-                            removeBlockedPackage(myPackageInfo);
-                        } else {
-                            addBlockedPackage(myPackageInfo);
-                        }
+                        taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),!checkBox.isChecked());
                         checkBox.setChecked(!checkBox.isChecked());
 
                     }
@@ -336,21 +315,14 @@ public class ParentalControlService extends Service {
                 packageTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (checkBox.isChecked()) {
-                            removeBlockedPackage(myPackageInfo);
-                        } else {
-                            addBlockedPackage(myPackageInfo);
-                        }
+                        taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),!checkBox.isChecked());
                         checkBox.setChecked(!checkBox.isChecked());
                     }
                 });
 
                 checkBox.setOnClickListener(view -> {
-                    if (checkBox.isChecked()) {
-                        removeBlockedPackage(myPackageInfo);
-                    } else {
-                        addBlockedPackage(myPackageInfo);
-                    }
+                    taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),checkBox.isChecked());
+
                 });
             iv.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -370,6 +342,7 @@ public class ParentalControlService extends Service {
                     if (!activities[i].is_private) {
                         TextView activityTextView = new TextView(context);
                         activityTextView.setText(activities[i].component_name.flattenToString());
+                        taskMap_BLOCKED.put(activities[i].component_name.flattenToString(),false);
                         Drawable activityDrawable = null;
                         LinearLayout activityLayout = new LinearLayout(context);
                         activityLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -397,15 +370,11 @@ public class ParentalControlService extends Service {
                         }
                         LinearLayout.LayoutParams activity_lp = (LinearLayout.LayoutParams) layout.getLayoutParams();
 
+                        int finalI = i;
                         activityImageView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
-                                if (activityCheckBox.isChecked()) {
-                                    removeBlockedPackage(myPackageInfo);
-                                } else {
-                                    addBlockedPackage(myPackageInfo);
-                                }
+                                taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),!activityCheckBox.isChecked());
                                 activityCheckBox.setChecked(!activityCheckBox.isChecked());
 
                             }
@@ -413,12 +382,9 @@ public class ParentalControlService extends Service {
                         activityTextView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                if (activityCheckBox.isChecked()) {
-                                    removeBlockedPackage(myPackageInfo);
-                                } else {
-                                    addBlockedPackage(myPackageInfo);
-                                }
+                                taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),!activityCheckBox.isChecked());
                                 activityCheckBox.setChecked(!activityCheckBox.isChecked());
+
                             }
                         });
                         activityImageView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -437,12 +403,7 @@ public class ParentalControlService extends Service {
                         });
 
                         activityCheckBox.setOnClickListener(view -> {
-                            if (activityCheckBox.isChecked()) {
-                                removeBlockedPackage(myPackageInfo);
-                            } else {
-                                addBlockedPackage(myPackageInfo);
-                            }
-
+                            taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),activityCheckBox.isChecked());
 
                         });
 
