@@ -10,7 +10,7 @@ android {
     }
     compileSdk 33
     defaultConfig {
-        applicationId "de.szalkowski.activitylauncher"
+        applicationId 'com.kapcode.parentalcontrols'
         minSdkVersion 19
         targetSdkVersion 33
     }

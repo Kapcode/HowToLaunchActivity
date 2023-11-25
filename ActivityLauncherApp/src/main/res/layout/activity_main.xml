@@ -7,7 +7,7 @@
     android:layout_centerHorizontal="false"
     android:layout_centerVertical="true"
     android:orientation="vertical"
-    tools:context=".MainActivity"
+    tools:context="com.kapcode.parentalcontrols.MainActivity"
     tools:ignore="MergeRootFrame">
 
     <RelativeLayout
