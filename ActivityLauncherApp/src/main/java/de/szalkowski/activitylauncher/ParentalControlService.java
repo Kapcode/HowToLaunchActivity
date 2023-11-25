@@ -28,8 +28,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -46,7 +48,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ParentalControlService extends Service {
-
+    static final int pollRate = 2000;
     public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher";
     public static String DEFAULT_LAUNCHER = AMAZON_FIRE_LAUNCHER;
     public static ComponentName launcher =ComponentName.unflattenFromString(DEFAULT_LAUNCHER);
@@ -68,12 +70,6 @@ public class ParentalControlService extends Service {
     LayoutInflater inflater;
     static SharedPreferences prefs;
     static List<MyPackageInfo> packages;
-
-
-
-
-
-
 
     @Override
     public void onStart(Intent intent, int startId) {
@@ -125,7 +121,7 @@ public class ParentalControlService extends Service {
                         //blocked_packages_map.get("");
                         //go to com.amazon.firelauncher.Launcher .. amazon homescreen
                         printForegroundTask();
-                        Thread.sleep(2000);
+                        Thread.sleep(pollRate);
 
                     } catch (InterruptedException e) {
 
@@ -240,6 +236,7 @@ public class ParentalControlService extends Service {
     }
 
     public static void resolve(Context context) {
+        MainActivity.layoutToPutInstalledAppInfoInto.removeAllViews();
         pm = context.getPackageManager();
         PackageManagerCache cache = PackageManagerCache.getPackageManagerCache(pm);
         List<PackageInfo> all_packages = pm.getInstalledPackages(0);
@@ -247,7 +244,7 @@ public class ParentalControlService extends Service {
         packages = new ArrayList<>(all_packages.size());
 
 
-        for (int i = 0; i < all_packages.size(); ++i) {  //todo blocked_packages_map.get("").activities[1].component_name); missing a loop of ... component name.. a set of launchable activities i think
+        for (int i = 0; i < all_packages.size(); ++i) {
             PackageInfo pack = all_packages.get(i);
             MyPackageInfo mypack;
             try {
@@ -265,14 +262,14 @@ public class ParentalControlService extends Service {
             ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
             MainActivity.mainActivity.addDone();
         });
-        // this.filtered = createFilterView("", this.prefs.getBoolean("hide_hide_private", true));
+
     }
 
 
     public static void populateLayoutWithPackageInformation(Context context) {//use loaded packages information to populate bottom layout
         for (MyPackageInfo myPackageInfo : all_packages) {
             MyActivityInfo[] activities = myPackageInfo.activities;
-            System.out.println("" + myPackageInfo.package_name);
+           // System.out.println("" + myPackageInfo.package_name);
             taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),false);
 
             Drawable drawable = null;
@@ -304,11 +301,18 @@ public class ParentalControlService extends Service {
 
                 }
                 LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) layout.getLayoutParams();
+
+
+            String fileNameA = myPackageInfo.package_name.toString();//todo better variable names
+            String contentA = MainActivity.readFromFile(fileNameA,context);
+
                 iv.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),!checkBox.isChecked());
                         checkBox.setChecked(!checkBox.isChecked());
+                        String bs = Boolean.toString(checkBox.isChecked());
+                        MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
 
                     }
                 });
@@ -317,12 +321,15 @@ public class ParentalControlService extends Service {
                     public void onClick(View v) {
                         taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),!checkBox.isChecked());
                         checkBox.setChecked(!checkBox.isChecked());
+                        String bs = Boolean.toString(checkBox.isChecked());
+                        MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
                     }
                 });
 
                 checkBox.setOnClickListener(view -> {
                     taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),checkBox.isChecked());
-
+                    String bs = Boolean.toString(checkBox.isChecked());
+                    MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
                 });
             iv.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -338,6 +345,15 @@ public class ParentalControlService extends Service {
                     return false;
                 }
             });
+
+
+
+            if(contentA!=null){
+                checkBox.setChecked(Boolean.parseBoolean(contentA.split("\n")[2].replace(" ","")));
+            }
+
+
+
                 for (int i = 0; i < activities.length; i++) {
                     if (!activities[i].is_private) {
                         TextView activityTextView = new TextView(context);
@@ -370,12 +386,21 @@ public class ParentalControlService extends Service {
                         }
                         LinearLayout.LayoutParams activity_lp = (LinearLayout.LayoutParams) layout.getLayoutParams();
 
+
+                        final String fileNameB = activities[i].component_name.flattenToString().replaceAll("/","_");// todo better variable names
+                        String contentB = MainActivity.readFromFile(fileNameB,context);
+
+
+
+
                         int finalI = i;
                         activityImageView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
                                 taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),!activityCheckBox.isChecked());
                                 activityCheckBox.setChecked(!activityCheckBox.isChecked());
+                                String bs = Boolean.toString(activityCheckBox.isChecked());
+                                MainActivity.writeToFile(fileNameB,fileNameB+"\n"+bs,context);
 
                             }
                         });
@@ -384,6 +409,8 @@ public class ParentalControlService extends Service {
                             public void onClick(View v) {
                                 taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),!activityCheckBox.isChecked());
                                 activityCheckBox.setChecked(!activityCheckBox.isChecked());
+                                String bs = Boolean.toString(activityCheckBox.isChecked());
+                                MainActivity.writeToFile(fileNameB,fileNameB+"\n"+bs,context);
 
                             }
                         });
@@ -404,8 +431,16 @@ public class ParentalControlService extends Service {
 
                         activityCheckBox.setOnClickListener(view -> {
                             taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),activityCheckBox.isChecked());
-
+                            String bs = Boolean.toString(activityCheckBox.isChecked());
+                            MainActivity.writeToFile(fileNameB,fileNameB+"\n"+bs,context);
                         });
+
+                        if(contentB!=null){
+                            activityCheckBox.setChecked(Boolean.parseBoolean(contentB.split("\n")[2]));
+                            System.out.println(contentB.split("\n")[2]);
+
+
+                        }
 
                     }
 

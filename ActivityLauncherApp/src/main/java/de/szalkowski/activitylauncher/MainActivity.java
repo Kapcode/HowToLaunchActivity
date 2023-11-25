@@ -29,6 +29,13 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
 public class MainActivity extends AppCompatActivity {
     static MainActivity mainActivity;
     private SharedPreferences prefs;
@@ -54,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         Configuration config = SettingsUtils.createLocaleConfiguration(this.localeString);
         getBaseContext().getResources().updateConfiguration(config,
                 getBaseContext().getResources().getDisplayMetrics());
-
+        stopParentalControlButtonButton(null);
             ParentalControlService.resolve(this);
     }
 
@@ -70,12 +77,17 @@ public class MainActivity extends AppCompatActivity {
     public void startParentalControlButtonButton(View v){//KYLE PROSPERT
         //watchDog starts the Alarm, Watching the service
         ParentalControlService.startService(this);
+        findViewById(R.id.startParentalControlButton).setEnabled(false);
+        findViewById(R.id.stopParentalControlButton).setEnabled(true);
         ParentalControlService.alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         ParentalControlService.watchDog(ParentalControlService.alarmManager,this);
+        layoutToPutInstalledAppInfoInto.setVisibility(View.GONE);
     }
     public void stopParentalControlButtonButton(View v){//KYLE PROSPERT
         ParentalControlService.stopService();
-
+        findViewById(R.id.startParentalControlButton).setEnabled(true);
+        findViewById(R.id.stopParentalControlButton).setEnabled(false);
+        layoutToPutInstalledAppInfoInto.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -90,8 +102,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-
+        stopParentalControlButtonButton(null);//always stop when resuming
     }
 
 
@@ -168,8 +179,49 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    static String readFromFile(String activityPackageNameAs_fileName, Context context) {
+
+        String ret = null;
+
+        try {
+            InputStream inputStream = context.openFileInput(activityPackageNameAs_fileName);
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append("\n").append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+           // System.out.println("login activity"+ "File not found: " + e.toString());
+
+        } catch (IOException e) {
+            //System.out.println("login activity"+ "Can not read file: " + e.toString());
+
+        }
+
+        return ret;
+    }
 
 
+    static void writeToFile(String activityPackageNameAs_fileName, String data, Context context) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(activityPackageNameAs_fileName, Context.MODE_PRIVATE));
+            outputStreamWriter.write(data.toString());
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            //System.out.println("Exception"+ "File write failed: " + e.toString());
+        }
+    }
 
 
 

@@ -7,6 +7,7 @@ package de.szalkowski.activitylauncher;
         import android.widget.Toast;
 
 public class MyAlarmReceiver extends BroadcastReceiver {//MADE NOT PUBLIC, CAUSE OF FUTURE ERROR?
+
     @Override
     public void onReceive(Context context, Intent intent) {
         Toast.makeText(context, "Alarm went off", Toast.LENGTH_SHORT).show();
