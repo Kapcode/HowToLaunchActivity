@@ -17,9 +17,12 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.Checkable;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,13 +71,7 @@ public class MainActivity extends AppCompatActivity {
             ParentalControlService.resolve(this);
 
     }
-    public void addDone(){
-        TextView done = new TextView(this);
-        done.setText("DONE");
-        LinearLayout ll = (LinearLayout) findViewById(R.id.ll_apinfo);
-        done.setTextSize(30);
-        ll.addView(done);
-    }
+
 
     public void startParentalControlButtonButton(View v){//KYLE PROSPERT
         //watchDog starts the Alarm, Watching the service
@@ -98,16 +95,45 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    public void checkAllBox(View view){
+        ToggleButton activitiesShownToggle = findViewById(R.id.activitiesToggle);
+        CheckBox toggleButton = (CheckBox) view;
+        for(ViewGroup vg:ParentalControlService.packagesViewGroupList){
+            if(!((TextView)vg.getChildAt(2)).getText().toString().equals(MainActivity.activity.getApplicationContext().getPackageName())){
+                ((CheckBox)vg.getChildAt(0)).setChecked(toggleButton.isChecked());
+                vg.getChildAt(0).callOnClick();
+                vg.getChildAt(0).callOnClick();
+            }
+        }
+        if(activitiesShownToggle.isChecked()){
+            for(ViewGroup vg:ParentalControlService.activitiesViewGroupList){
+                ((CheckBox)vg.getChildAt(0)).setChecked(toggleButton.isChecked());
+                vg.getChildAt(0).callOnClick();
+                vg.getChildAt(0).callOnClick();
+            }
+        }
+    }
+
 
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        stopParentalControlButtonButton(null);//always stop when resuming
+
+        //stopParentalControlButtonButton(null);//always stop when resuming
     }
 
-
+    public void activitiesToggle(View view){
+        ToggleButton tg = (ToggleButton) view;
+        for(ViewGroup vg:ParentalControlService.activitiesViewGroupList){
+            if(tg.isChecked()){
+                vg.setVisibility(View.VISIBLE);
+            }else{
+                vg.setVisibility(View.GONE);
+            }
+        }
+    }
 
 
 

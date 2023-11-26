@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.IBinder;
 import android.icu.util.Calendar;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ParentalControlService extends Service {
     static final int pollRate = 2000;
+    public static ArrayList<ViewGroup> activitiesViewGroupList,packagesViewGroupList;
     public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher";
     public static String DEFAULT_LAUNCHER = AMAZON_FIRE_LAUNCHER;
     public static ComponentName launcher =ComponentName.unflattenFromString(DEFAULT_LAUNCHER);
@@ -107,12 +109,16 @@ public class ParentalControlService extends Service {
                     System.out.println(loop);
                     loop--;
                     try {//should block plex app.
-                        if(taskMap_BLOCKED.get(getForegroundTask())){
-                            //the value is a boolean, true means app is blocked.
-                            Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
-                            //false means app is okay.
+                        String task = getForegroundTask();
+                        System.out.println(task);
 
-                        }
+                            if (task != null && taskMap_BLOCKED.get(task)) {
+                                //the value is a boolean, true means app is blocked.
+                                Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
+                                //false means app is okay.
+
+                            }
+
                             //chosen from ui, derived from ComponentName.unflattenFromString()
                         //blocked_packages_map.get("");
                         //go to com.amazon.firelauncher.Launcher .. amazon homescreen
@@ -160,7 +166,7 @@ public class ParentalControlService extends Service {
     }
 
     public String getForegroundTask() {
-        String currentApp = "NULL";
+        String currentApp = null;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             UsageStatsManager usm = (UsageStatsManager) this.getSystemService(Context.USAGE_STATS_SERVICE);
             long time = System.currentTimeMillis();
@@ -256,14 +262,20 @@ public class ParentalControlService extends Service {
         ParentalControlService.all_packages = packages;
         MainActivity.handler.post(() -> {
             ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
-            MainActivity.mainActivity.addDone();
+
         });
 
     }
 
 
     public static void populateLayoutWithPackageInformation(Context context) {//use loaded packages information to populate bottom layout
+        activitiesViewGroupList=new ArrayList<>();
+        packagesViewGroupList=new ArrayList<>();
         for (MyPackageInfo myPackageInfo : all_packages) {
+            //do not allow this app to be blocked by itself.
+
+
+
             MyActivityInfo[] activities = myPackageInfo.activities;
            // System.out.println("" + myPackageInfo.package_name);
             taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),false);
@@ -279,16 +291,24 @@ public class ParentalControlService extends Service {
             }
             TextView packageTextView = new TextView(context);
             packageTextView.setMinWidth(MainActivity.screenWidth);
-            packageTextView.setTypeface(null, Typeface.BOLD);
+            packageTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,16);
             packageTextView.setText(myPackageInfo.package_name);
 
             CheckBox checkBox = new CheckBox(context);
             layout.addView(checkBox);
+
             layout.addView(iv);
 
-            layout.addView(packageTextView);
 
+
+            TextView applicationNameTextView = new TextView(context);
+            applicationNameTextView.setText(myPackageInfo.name+"   ");
+            applicationNameTextView.setTypeface(null, Typeface.BOLD);
+            applicationNameTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,16);
+            layout.addView(applicationNameTextView);
+            layout.addView(packageTextView);
                 MainActivity.layoutToPutInstalledAppInfoInto.addView(layout);
+                packagesViewGroupList.add(layout);
                 if (drawable != null) {
                     iv.setImageDrawable(drawable);
                     LinearLayout.LayoutParams ivlp = (LinearLayout.LayoutParams) iv.getLayoutParams();
@@ -303,6 +323,10 @@ public class ParentalControlService extends Service {
             String fileNameA = myPackageInfo.package_name.toString();//todo better variable names
             String contentA = MainActivity.readFromFile(fileNameA,context);
 
+
+            if(myPackageInfo.package_name.equals(MainActivity.activity.getApplicationContext().getPackageName())){
+                checkBox.setVisibility(View.INVISIBLE);
+            }else{
                 iv.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -328,6 +352,9 @@ public class ParentalControlService extends Service {
                     String bs = Boolean.toString(checkBox.isChecked());
                     MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
                 });
+            }
+
+
             iv.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
@@ -372,6 +399,8 @@ public class ParentalControlService extends Service {
                         activityLayout.addView(activityTextView);
 
                         MainActivity.layoutToPutInstalledAppInfoInto.addView(activityLayout);
+                        activitiesViewGroupList.add(activityLayout);
+
                         if(activities[i].component_name.flattenToString().equals(DEFAULT_LAUNCHER)){
                             highlightLauncherApp(activityTextView,activities[i].component_name);
                         }
@@ -435,6 +464,7 @@ public class ParentalControlService extends Service {
 
 
                         }
+                        activityLayout.setVisibility(View.GONE);//hide activity layout on start.
 
                     }
 

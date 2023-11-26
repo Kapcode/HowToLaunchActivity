@@ -18,6 +18,26 @@
         android:layout_marginBottom="100dp"
         android:background="#7A42BA">
 
+        <CheckBox
+            android:id="@+id/checkAllVisible"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="20dp"
+            android:minHeight="48dp"
+            android:onClick="checkAllBox" />
+
+        <ToggleButton
+            android:id="@+id/activitiesToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="activitiesToggle"
+            android:text="ToggleButton"
+            android:textOff="Activities Hidden"
+            android:textOn="Activities Shown" />
+
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
