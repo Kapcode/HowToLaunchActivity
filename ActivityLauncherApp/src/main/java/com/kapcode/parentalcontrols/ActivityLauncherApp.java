@@ -11,7 +11,7 @@ public class ActivityLauncherApp extends Application {
         super.onCreate();
         var prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
-        //SettingsUtils.setTheme(prefs.getString("theme", "0"));
+        SettingsUtils.setTheme(prefs.getString("theme", "0"));
 
 
 

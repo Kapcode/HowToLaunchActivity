@@ -4,6 +4,7 @@ package com.kapcode.parentalcontrols;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,8 +14,10 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -28,6 +31,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -47,8 +51,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ParentalControlService extends Service {
     static final int pollRate = 2000;
     public static ArrayList<ViewGroup> activitiesViewGroupList,packagesViewGroupList;
-    public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher";
-    public static String DEFAULT_LAUNCHER = AMAZON_FIRE_LAUNCHER;
+    public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher",
+    NOVA_LAUNCHER="com.teslacoilsw.launcher/com.teslacoilsw.launcher.NovaLauncher";
+
+    public static String DEFAULT_LAUNCHER = NOVA_LAUNCHER;
     public static ComponentName launcher =ComponentName.unflattenFromString(DEFAULT_LAUNCHER);
 
     private static ArrayList<MyPackageInfo> blocked_packages = new ArrayList<>();
@@ -65,6 +71,7 @@ public class ParentalControlService extends Service {
     static volatile Thread serviceThread;
     //NEW IMPORTS //TODO WEED OUT
     static PackageManager pm;
+    private static ArrayList<String> failedPackagesList;
     LayoutInflater inflater;
     static SharedPreferences prefs;
     static List<MyPackageInfo> packages;
@@ -103,8 +110,8 @@ public class ParentalControlService extends Service {
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int loop = 100;//test watchdog
-                while (serviceIsRunning.get() && loop > 0) { //loop counting down to 0 is simulating android killing off service, or end of work,
+                int loop = 10000;//test watchdog
+                while (serviceIsRunning.get()) { //loop counting down to 0 is simulating android killing off service, or end of work,
                     // you can use this to test watch dog, or to simulate end of work
                     System.out.println(loop);
                     loop--;
@@ -117,6 +124,7 @@ public class ParentalControlService extends Service {
                                 Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
                                 //false means app is okay.
 
+                                System.out.println("STARTING");
                             }
 
                             //chosen from ui, derived from ComponentName.unflattenFromString()
@@ -242,35 +250,35 @@ public class ParentalControlService extends Service {
         pm = context.getPackageManager();
         PackageManagerCache cache = PackageManagerCache.getPackageManagerCache(pm);
         List<PackageInfo> all_packages = pm.getInstalledPackages(0);
+        
         Configuration locale = SettingsUtils.createLocaleConfiguration("English");
         packages = new ArrayList<>(all_packages.size());
-
-
+        ArrayList<String> failedPackagesList = new ArrayList<>();
         for (int i = 0; i < all_packages.size(); ++i) {
             PackageInfo pack = all_packages.get(i);
             MyPackageInfo mypack;
-            try {
+
                 mypack = cache.getPackageInfo(pack.packageName, locale);
-                if (mypack.getActivitiesCount() > 0) {
-                    packages.add(mypack);
+                if(mypack==null){
+                    failedPackagesList.add(pack.packageName);
+                }else{
+                    if (mypack.getActivitiesCount() > 0) {
+                        packages.add(mypack);
+                    }
                 }
-            } catch (PackageManager.NameNotFoundException | RuntimeException ignored) {
-            }
-        }//todo
 
+
+        }
         Collections.sort(packages);
+        ParentalControlService.failedPackagesList =failedPackagesList;
         ParentalControlService.all_packages = packages;
-        MainActivity.handler.post(() -> {
-            ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
-
-        });
-
+        ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
     }
-
 
     public static void populateLayoutWithPackageInformation(Context context) {//use loaded packages information to populate bottom layout
         activitiesViewGroupList=new ArrayList<>();
         packagesViewGroupList=new ArrayList<>();
+
         for (MyPackageInfo myPackageInfo : all_packages) {
             //do not allow this app to be blocked by itself.
 
@@ -374,20 +382,56 @@ public class ParentalControlService extends Service {
 
             if(contentA!=null){
                 checkBox.setChecked(Boolean.parseBoolean(contentA.split("\n")[2].replace(" ","")));
+                taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),checkBox.isChecked());
             }
+
 
 
 
                 for (int i = 0; i < activities.length; i++) {
                     if (!activities[i].is_private) {
                         TextView activityTextView = new TextView(context);
-                        activityTextView.setMinWidth(MainActivity.screenWidth);
+                        //activityTextView.setMinWidth(MainActivity.screenWidth);
                         activityTextView.setText(activities[i].component_name.flattenToString());
                         taskMap_BLOCKED.put(activities[i].component_name.flattenToString(),false);
                         Drawable activityDrawable = null;
                         LinearLayout activityLayout = new LinearLayout(context);
                         activityLayout.setOrientation(LinearLayout.HORIZONTAL);
                         ImageView activityImageView = new ImageView(context);
+                        Button launchActivityButton = new Button(context);
+                        launchActivityButton.setText("launch");
+                        int finalI1 = i;
+                        launchActivityButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                new AlertDialog.Builder(context)
+                                        .setTitle("Launch this activity?")
+                                        .setMessage("This will start a new app, and take you out of this app!\n" +
+                                                "Do you want to proceed?")
+                                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                                Launcher.launchActivity(context, activities[finalI1].component_name);
+                                            }
+                                        })
+                                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                dialogInterface.cancel();
+                                            }
+                                        })
+                                        .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                            @Override
+                                            public void onDismiss(DialogInterface dialogInterface) {
+                                                dialogInterface.cancel();
+                                            }
+                                        })
+                                        // A null listener allows the button to dismiss the dialog and take no further action.
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+                            }
+                        });
                         try {
                             activityDrawable = context.getPackageManager().getApplicationIcon(myPackageInfo.package_name);
                         } catch (PackageManager.NameNotFoundException e) {
@@ -396,7 +440,9 @@ public class ParentalControlService extends Service {
                         CheckBox activityCheckBox = new CheckBox(context);
                         activityLayout.addView(activityCheckBox);
                         activityLayout.addView(activityImageView);
+                        activityLayout.addView(launchActivityButton);
                         activityLayout.addView(activityTextView);
+
 
                         MainActivity.layoutToPutInstalledAppInfoInto.addView(activityLayout);
                         activitiesViewGroupList.add(activityLayout);
@@ -460,7 +506,7 @@ public class ParentalControlService extends Service {
 
                         if(contentB!=null){
                             activityCheckBox.setChecked(Boolean.parseBoolean(contentB.split("\n")[2]));
-                            System.out.println(contentB.split("\n")[2]);
+                           // System.out.println(contentB.split("\n")[2]);
 
 
                         }
@@ -472,6 +518,103 @@ public class ParentalControlService extends Service {
                 }
 
 
+
+        }
+
+        for(String failedPackage:failedPackagesList){
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.HORIZONTAL);
+            ImageView iv = new ImageView(context);
+            Drawable drawable = null;
+            try {
+                drawable = context.getPackageManager().getApplicationIcon(failedPackage);
+            } catch (PackageManager.NameNotFoundException e) {
+
+            }
+            TextView packageTextView = new TextView(context);
+            packageTextView.setMinWidth(MainActivity.screenWidth);
+            packageTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,16);
+            packageTextView.setText(failedPackage);
+
+            CheckBox checkBox = new CheckBox(context);
+            layout.addView(checkBox);
+
+            layout.addView(iv);
+
+
+
+
+
+            layout.addView(packageTextView);
+            MainActivity.layoutToPutInstalledAppInfoInto.addView(layout);
+            packagesViewGroupList.add(layout);
+            if (drawable != null) {
+                iv.setImageDrawable(drawable);
+                LinearLayout.LayoutParams ivlp = (LinearLayout.LayoutParams) iv.getLayoutParams();
+                ivlp.height = 50;
+                ivlp.width = 50;
+                iv.setLayoutParams(ivlp);
+
+            }
+            LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) layout.getLayoutParams();
+
+
+            String fileNameA = failedPackage;//todo better variable names
+            String contentA = MainActivity.readFromFile(fileNameA,context);
+
+
+            if(failedPackage.equals(MainActivity.activity.getApplicationContext().getPackageName())){
+                checkBox.setVisibility(View.INVISIBLE);
+            }else{
+                iv.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        taskMap_BLOCKED.put(failedPackage,!checkBox.isChecked());
+                        checkBox.setChecked(!checkBox.isChecked());
+                        String bs = Boolean.toString(checkBox.isChecked());
+                        MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
+
+                    }
+                });
+                packageTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        taskMap_BLOCKED.put(failedPackage,!checkBox.isChecked());
+                        checkBox.setChecked(!checkBox.isChecked());
+                        String bs = Boolean.toString(checkBox.isChecked());
+                        MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
+                    }
+                });
+
+                checkBox.setOnClickListener(view -> {
+                    taskMap_BLOCKED.put(failedPackage,checkBox.isChecked());
+                    String bs = Boolean.toString(checkBox.isChecked());
+                    MainActivity.writeToFile(fileNameA,fileNameA+"\n"+bs,context);
+                });
+            }
+
+
+            iv.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
+                    return false;
+                }
+            });
+            packageTextView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
+                    return false;
+                }
+            });
+
+
+
+            if(contentA!=null){
+                checkBox.setChecked(Boolean.parseBoolean(contentA.split("\n")[2].replace(" ","")));
+                taskMap_BLOCKED.put(failedPackage,checkBox.isChecked());
+            }
 
         }
     }

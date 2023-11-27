@@ -32,23 +32,34 @@ class PackageManagerCache {
         instance = null;
     }
 
-    MyPackageInfo getPackageInfo(String packageName, Configuration config) throws NameNotFoundException {
-        MyPackageInfo myInfo;
+    MyPackageInfo getPackageInfo(String packageName, Configuration config) {
+        MyPackageInfo myInfo = null;
 
         synchronized (packageInfos) {
             if (packageInfos.containsKey(packageName)) {
                 return packageInfos.get(packageName);
             }
 
-            PackageInfo info;
-            info = pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            PackageInfo info = null;
+            try {
+                info = pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            } catch (NameNotFoundException | RuntimeException reignored) {
 
-            myInfo = MyPackageInfo.fromPackageInfo(this, info, config);
+            }
+
+            try {
+                myInfo = MyPackageInfo.fromPackageInfo(this, info, config);
+            } catch (NameNotFoundException | RuntimeException reignored) {
+
+            }
             packageInfos.put(packageName, myInfo);
         }
 
         return myInfo;
     }
+
+
+
 
     MyActivityInfo getActivityInfo(ComponentName activityName, Configuration config) {
         MyActivityInfo myInfo;

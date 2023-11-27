@@ -56,7 +56,7 @@ public class IconListAdapter extends BaseAdapter {
                         icons.add(icon_resource_name);
                     }
                 }
-            } catch (NameNotFoundException | RuntimeException ignored) {
+            } catch (RuntimeException ignored) {
             }
         }
 
