@@ -43,6 +43,7 @@ class PackageManagerCache {
             PackageInfo info = null;
             try {
                 info = pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+
             } catch (NameNotFoundException | RuntimeException reignored) {
 
             }

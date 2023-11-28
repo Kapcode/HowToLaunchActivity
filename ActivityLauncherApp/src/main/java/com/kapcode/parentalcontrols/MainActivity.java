@@ -12,6 +12,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
@@ -21,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.Checkable;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -52,6 +54,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        var prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+        SettingsUtils.setTheme(prefs.getString("theme", "0"));
+
+
+
+        if (!prefs.contains("hide_hide_private")) {
+            prefs.edit().putBoolean("hide_hide_private", false).apply();
+        }
+
+        if (!prefs.contains("language")) {
+            prefs.edit().putString("language", "System Default").apply();
+        }
+
+
+
+
         setContentView(R.layout.activity_main);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
@@ -64,14 +84,37 @@ public class MainActivity extends AppCompatActivity {
         setTitle(R.string.app_name);
         this.prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         this.localeString = prefs.getString("language", "System Default");
+        MainActivity.progressBar(true);
         //Configuration config = SettingsUtils.createLocaleConfiguration(this.localeString);
         //getBaseContext().getResources().updateConfiguration(config,
                // getBaseContext().getResources().getDisplayMetrics());
+
         stopParentalControlButtonButton(null);
-            ParentalControlService.resolve(this);
+
 
     }
 
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                ParentalControlService.resolve(mainActivity);
+            }
+        }).start();
+    }
+    public static void progressBar(boolean show){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                ProgressBar p = mainActivity.findViewById(R.id.progressBar);
+                p.setActivated(show);
+            }
+        });
+
+    }
 
     public void startParentalControlButtonButton(View v){//KYLE PROSPERT
         //watchDog starts the Alarm, Watching the service

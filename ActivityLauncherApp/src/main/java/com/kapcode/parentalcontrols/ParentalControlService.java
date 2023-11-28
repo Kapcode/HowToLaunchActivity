@@ -260,6 +260,14 @@ public class ParentalControlService extends Service {
 
                 mypack = cache.getPackageInfo(pack.packageName, locale);
                 if(mypack==null){
+
+                    //String html = HTMLPageDownloader.downloadHtml("https://play.google.com/store/apps/details?id="+pack.packageName);
+                   // System.out.println(html);
+
+                    /*
+                    one option is to grab the app name from the web off the play store.
+                    */
+
                     failedPackagesList.add(pack.packageName);
                 }else{
                     if (mypack.getActivitiesCount() > 0) {
@@ -272,7 +280,12 @@ public class ParentalControlService extends Service {
         Collections.sort(packages);
         ParentalControlService.failedPackagesList =failedPackagesList;
         ParentalControlService.all_packages = packages;
-        ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
+        MainActivity.handler.post(new Runnable() {
+            @Override
+            public void run() {
+                ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
+            }
+        });
     }
 
     public static void populateLayoutWithPackageInformation(Context context) {//use loaded packages information to populate bottom layout
