@@ -260,6 +260,17 @@ public class ParentalControlService extends Service {
 
                 mypack = cache.getPackageInfo(pack.packageName, locale);
                 if(mypack==null){
+                    /*new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            String html = HTMLPageDownloader.downloadHtml("https://play.google.com/store/apps/details?id="+pack.packageName);
+                            System.out.println(html);
+
+                        }
+                    }).start();*/
+
+
+
                     failedPackagesList.add(pack.packageName);
                 }else{
                     if (mypack.getActivitiesCount() > 0) {

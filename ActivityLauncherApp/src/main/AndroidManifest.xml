@@ -49,6 +49,8 @@
 
 
         <service android:enabled="true" android:name="com.kapcode.parentalcontrols.ParentalControlService" />
+
         <receiver android:name="com.kapcode.parentalcontrols.MyAlarmReceiver" />
+
     </application>
 </manifest>

@@ -11,7 +11,7 @@ android {
     compileSdk 33
     defaultConfig {
         applicationId 'com.kapcode.parentalcontrols'
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 33
     }
     buildTypes {
@@ -43,6 +43,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.preference:preference:1.2.1'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:2.9.9'
 }
 
 configurations.implementation {
