@@ -284,6 +284,7 @@ public class ParentalControlService extends Service {
             @Override
             public void run() {
                 ParentalControlService.populateLayoutWithPackageInformation(MainActivity.activity);
+                MainActivity.progressBar(false);
             }
         });
     }
@@ -553,7 +554,12 @@ public class ParentalControlService extends Service {
             layout.addView(checkBox);
 
             layout.addView(iv);
-
+            TextView applicationNameTextView = new TextView(context);
+            applicationNameTextView.setText("NAME_NOT_FOUND"+"   ");
+            applicationNameTextView.setTextColor(Color.RED);
+            applicationNameTextView.setTypeface(null, Typeface.BOLD);
+            applicationNameTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP,16);
+            layout.addView(applicationNameTextView);
 
 
 
