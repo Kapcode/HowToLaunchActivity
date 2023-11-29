@@ -110,7 +110,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 ProgressBar p = mainActivity.findViewById(R.id.progressBar);
-                p.setActivated(show);
+
+                if(show){
+                    p.setVisibility(View.VISIBLE);
+                }else {
+                    p.setVisibility(View.GONE);
+                }
             }
         });
 

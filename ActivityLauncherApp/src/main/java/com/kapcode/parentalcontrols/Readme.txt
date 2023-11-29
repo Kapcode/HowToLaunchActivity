@@ -19,3 +19,6 @@ List of all manifest permissions used bellow:
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"
         tools:ignore="ExactAlarm" />
+
+
+        //todo update permissions used in this file before release
