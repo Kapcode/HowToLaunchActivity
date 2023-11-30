@@ -52,6 +52,7 @@ class PackageManagerCache {
 
                 try {
                     info = pm.getPackageInfo(packageName, PackageManager.MATCH_ALL);
+
                 } catch (NameNotFoundException e) {
 
                 }

@@ -27,7 +27,11 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
         var myInfo = new MyPackageInfo();
         myInfo.package_name = info.packageName;
         ApplicationInfo app = info.applicationInfo;
-        if(myInfo.name==null)myInfo.name="null";
+
+        if(myInfo.name==null){
+            String appName = info.applicationInfo.loadLabel(MainActivity.mainActivity.getPackageManager()).toString();
+            myInfo.name=appName;
+        }
 
         if (app != null) {
             try {
