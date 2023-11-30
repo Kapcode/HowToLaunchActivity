@@ -291,7 +291,7 @@ public class ParentalControlService extends Service {
 
 
         }
-        //Collections.sort(packages);
+        Collections.sort(packages);
         ParentalControlService.failedPackagesList =failedPackagesList;
         ParentalControlService.all_packages = packages;
         MainActivity.handler.post(new Runnable() {

@@ -27,7 +27,7 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
         var myInfo = new MyPackageInfo();
         myInfo.package_name = info.packageName;
         ApplicationInfo app = info.applicationInfo;
-
+        if(myInfo.name==null)myInfo.name="null";
 
         if (app != null) {
             try {
