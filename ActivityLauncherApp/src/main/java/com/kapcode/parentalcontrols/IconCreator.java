@@ -33,7 +33,7 @@ import androidx.appcompat.app.AlertDialog;
 import java.util.Objects;
 
 
-import de.szalkowski.activitylauncher.R;
+
 
 public class IconCreator {
 
@@ -126,8 +126,8 @@ public class IconCreator {
 
 
     private static void createShortcut(Context context, String appName, Drawable draw, Intent intent, String iconResourceName) {
-        Toast.makeText(context, String.format(context.getText(R.string.creating_application_shortcut).toString(), appName),
-                Toast.LENGTH_LONG).show();
+        //Toast.makeText(context, String.format(context.getText(R.string.creating_application_shortcut).toString(), appName),
+                //Toast.LENGTH_LONG).show();
         if (Build.VERSION.SDK_INT >= 26) {
             doCreateShortcut(context, appName, draw, intent);
         } else {
@@ -172,8 +172,8 @@ public class IconCreator {
 
         } else {
             new AlertDialog.Builder(context)
-                    .setTitle(context.getText(R.string.error_creating_shortcut))
-                    .setMessage(context.getText(R.string.error_verbose_pin_shortcut))
+                    //.setTitle(context.getText(R.string.error_creating_shortcut))
+                   // .setMessage(context.getText(R.string.error_verbose_pin_shortcut))
                     .setPositiveButton(context.getText(android.R.string.ok), (dialog, which) -> {
                         // Just close dialog don't do anything
                         dialog.cancel();

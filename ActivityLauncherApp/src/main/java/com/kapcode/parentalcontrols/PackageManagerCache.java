@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 
+import androidx.core.content.PackageManagerCompat;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +44,7 @@ class PackageManagerCache {
 
             PackageInfo info = null;
             try {
+
                 info = pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
 
             } catch (NameNotFoundException | RuntimeException reignored) {

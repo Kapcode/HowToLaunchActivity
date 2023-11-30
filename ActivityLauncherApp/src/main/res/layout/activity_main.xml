@@ -10,22 +10,35 @@
     tools:context="com.kapcode.parentalcontrols.MainActivity"
     tools:ignore="MergeRootFrame">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/centerMarker"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="-50dp"
-        tools:visibility="visible" />
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/centerMarker">
+
+        <LinearLayout
+            android:id="@+id/ll_scoll_horiz"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/ll_apinfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"></LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <RelativeLayout
         android:id="@+id/relative_top"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/centerMarker"
-        android:layout_marginBottom="100dp"
         android:background="#7A42BA">
 
         <CheckBox
@@ -47,15 +60,6 @@
             android:text="ToggleButton"
             android:textOff="Activities Hidden"
             android:textOn="Activities Shown" />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/startParentalControlButton"
-            android:layout_alignStart="@id/startParentalControlButton"
-            android:text="Long Press on actvity/app to set lancher!"
-            android:textSize="16sp" />
 
         <Button
             android:id="@+id/startParentalControlButton"
@@ -90,6 +94,7 @@
             android:layout_marginBottom="20dp"
             android:onClick="grantAccessButton"
             android:text="Grant Permission" />
+
     </RelativeLayout>
 
     <TextView
@@ -99,22 +104,14 @@
         android:layout_centerInParent="true"
         android:visibility="invisible" />
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_below="@id/centerMarker"
-        android:layout_marginTop="-100dp">
-
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:id="@+id/ll_apinfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"></LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </HorizontalScrollView>
+        android:layout_centerInParent="true"
+        android:layout_marginTop="-50dp"
+        tools:visibility="visible" />
 
 </RelativeLayout>

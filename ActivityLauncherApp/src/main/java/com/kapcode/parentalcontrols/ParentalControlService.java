@@ -48,6 +48,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import de.szalkowski.activitylauncher.R;
+
 public class ParentalControlService extends Service {
     static final int pollRate = 2000;
     public static ArrayList<ViewGroup> activitiesViewGroupList,packagesViewGroupList;
@@ -121,10 +123,10 @@ public class ParentalControlService extends Service {
 
                         if (task != null && taskMap_BLOCKED.get(task)) {
                             //the value is a boolean, true means app is blocked.
-                            Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
+                            //Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
                             //false means app is okay.
-
-                            System.out.println("STARTING");
+                            goHome();
+                            System.out.println("Going home!");
                         }
 
                         //chosen from ui, derived from ComponentName.unflattenFromString()
@@ -150,6 +152,12 @@ public class ParentalControlService extends Service {
         return START_STICKY;
     }
 
+    public static void goHome(){
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        s.getApplication().getApplicationContext().startActivity(startMain);
+    }
     // Constants
     private static final int ID_SERVICE = 10129;
 
@@ -261,8 +269,14 @@ public class ParentalControlService extends Service {
             mypack = cache.getPackageInfo(pack.packageName, locale);
             if(mypack==null){
 
-                //String html = HTMLPageDownloader.downloadHtml("https://play.google.com/store/apps/details?id="+pack.packageName);
-                // System.out.println(html);
+                
+               // try {  //No name on raw html, all in java script :(
+                    //String html = HTML.downloadHTML("https://play.google.com/store/apps/details?id=" + pack.packageName, 3000);
+                    //System.out.println(pack.packageName+"\n"+html);
+                //} catch (InterruptedException e) {
+                    
+                //}
+                
 
                     /*
                     one option is to grab the app name from the web off the play store.
@@ -293,18 +307,31 @@ public class ParentalControlService extends Service {
         activitiesViewGroupList=new ArrayList<>();
         packagesViewGroupList=new ArrayList<>();
 
+
         for (MyPackageInfo myPackageInfo : all_packages) {
             //do not allow this app to be blocked by itself.
 
 
 
             MyActivityInfo[] activities = myPackageInfo.activities;
-            // System.out.println("" + myPackageInfo.package_name);
+             System.out.println("" + myPackageInfo.package_name);
             taskMap_BLOCKED.put(myPackageInfo.package_name.toString(),false);
 
             Drawable drawable = null;
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.HORIZONTAL);
+            switch (MainActivity.mainActivity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    //process
+                    //layout.setBackgroundColor(Color.DKGRAY);
+                    //MainActivity.mainActivity.findViewById(R.id.ll_scoll_horiz).setBackgroundColor(Color.DKGRAY);
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    // process
+                    //layout.setBackgroundColor(Color.WHITE);
+                    break;
+            }
+
             ImageView iv = new ImageView(context);
             try {
                 drawable = context.getPackageManager().getApplicationIcon(myPackageInfo.package_name);
@@ -377,20 +404,8 @@ public class ParentalControlService extends Service {
             }
 
 
-            iv.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
-                    return false;
-                }
-            });
-            packageTextView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
-                    return false;
-                }
-            });
+
+
 
 
 
@@ -457,13 +472,21 @@ public class ParentalControlService extends Service {
                     activityLayout.addView(launchActivityButton);
                     activityLayout.addView(activityTextView);
 
+                    switch (MainActivity.mainActivity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                        case Configuration.UI_MODE_NIGHT_YES:
+                            //process
+                            //activityLayout.setBackgroundColor(Color.DKGRAY);
+                            break;
+                        case Configuration.UI_MODE_NIGHT_NO:
+                            // process
+                            //layout.setBackgroundColor(Color.WHITE);
+                            break;
+                    }
 
                     MainActivity.layoutToPutInstalledAppInfoInto.addView(activityLayout);
                     activitiesViewGroupList.add(activityLayout);
 
-                    if(activities[i].component_name.flattenToString().equals(DEFAULT_LAUNCHER)){
-                        highlightLauncherApp(activityTextView,activities[i].component_name);
-                    }
+
                     if (activityDrawable != null) {
                         activityImageView.setImageDrawable(activityDrawable);
                         LinearLayout.LayoutParams ivlp = (LinearLayout.LayoutParams) activityImageView.getLayoutParams();
@@ -497,20 +520,8 @@ public class ParentalControlService extends Service {
 
                         }
                     });
-                    activityImageView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View view) {
-                            highlightLauncherApp(view,ComponentName.unflattenFromString(activityTextView.getText().toString()));
-                            return false;
-                        }
-                    });
-                    activityTextView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View view) {
-                            highlightLauncherApp(view,ComponentName.unflattenFromString(activityTextView.getText().toString()));
-                            return false;
-                        }
-                    });
+
+
 
                     activityCheckBox.setOnClickListener(view -> {
                         taskMap_BLOCKED.put(activities[finalI].component_name.flattenToString(),activityCheckBox.isChecked());
@@ -531,8 +542,6 @@ public class ParentalControlService extends Service {
 
             }
 
-
-
         }
 
         for(String failedPackage:failedPackagesList){
@@ -552,6 +561,16 @@ public class ParentalControlService extends Service {
 
             CheckBox checkBox = new CheckBox(context);
             layout.addView(checkBox);
+            switch (MainActivity.mainActivity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    //process
+                    //layout.setBackgroundColor(Color.DKGRAY);
+                    break;
+                case Configuration.UI_MODE_NIGHT_NO:
+                    // process
+                    //layout.setBackgroundColor(Color.WHITE);
+                    break;
+            }
 
             layout.addView(iv);
             TextView applicationNameTextView = new TextView(context);
@@ -613,20 +632,8 @@ public class ParentalControlService extends Service {
             }
 
 
-            iv.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
-                    return false;
-                }
-            });
-            packageTextView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    highlightLauncherApp(view,ComponentName.unflattenFromString(packageTextView.getText().toString()));
-                    return false;
-                }
-            });
+
+
 
 
 
@@ -636,18 +643,11 @@ public class ParentalControlService extends Service {
             }
 
         }
+
+
+
     }
-    public static void highlightLauncherApp(View viewToHighlight,ComponentName componentName){
-        ViewGroup vg_toHighlight = (ViewGroup) viewToHighlight.getParent();
-        ViewGroup root_vg = (ViewGroup) vg_toHighlight.getParent();
-        int index = 0;
-        while(index<root_vg.getChildCount()){
-            root_vg.getChildAt(index).setBackgroundColor(Color.WHITE);
-            index++;
-        }
-        vg_toHighlight.setBackgroundColor(Color.YELLOW);
-        launcher=componentName;
-    }
+
 
 
 
