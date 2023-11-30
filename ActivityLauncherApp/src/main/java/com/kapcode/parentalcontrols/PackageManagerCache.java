@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.os.Build;
 
 import androidx.core.content.PackageManagerCompat;
 
@@ -49,13 +50,18 @@ class PackageManagerCache {
 
             } catch (NameNotFoundException | RuntimeException reignored) {
 
+                try {
+                    info = pm.getPackageInfo(packageName, PackageManager.MATCH_ALL);
+                } catch (NameNotFoundException e) {
+
+                }
+
+
             }
 
-            try {
+
                 myInfo = MyPackageInfo.fromPackageInfo(this, info, config);
-            } catch (NameNotFoundException | RuntimeException reignored) {
 
-            }
             packageInfos.put(packageName, myInfo);
         }
 

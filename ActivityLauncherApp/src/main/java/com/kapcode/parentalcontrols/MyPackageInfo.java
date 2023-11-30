@@ -22,7 +22,7 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
     protected String name;
     protected MyActivityInfo[] activities;
 
-    public static MyPackageInfo fromPackageInfo(PackageManagerCache cache, PackageInfo info, Configuration config) throws PackageManager.NameNotFoundException {
+    public static MyPackageInfo fromPackageInfo(PackageManagerCache cache, PackageInfo info, Configuration config)  {
         var pm = cache.getPackageManager();
         var myInfo = new MyPackageInfo();
         myInfo.package_name = info.packageName;
@@ -30,7 +30,11 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
 
 
         if (app != null) {
-            myInfo.name = getLocalizedName(config, pm, myInfo, app);
+            try {
+                myInfo.name = getLocalizedName(config, pm, myInfo, app);
+            } catch (PackageManager.NameNotFoundException | RuntimeException e) {
+
+            }
             try {
                 myInfo.icon = pm.getApplicationIcon(app);
             } catch (Exception e) {
@@ -126,10 +130,18 @@ public class MyPackageInfo implements Comparable<MyPackageInfo> {
 
     @Override
     public int compareTo(MyPackageInfo another) {
-        int cmp_name = this.name.compareTo(another.name);
-        if (cmp_name != 0) return cmp_name;
+        try{
+            int cmp_name;
 
-        return this.package_name.compareTo(another.package_name);
+            cmp_name = this.name.compareTo(another.name);
+            if (cmp_name != 0) return cmp_name;
+
+            return this.package_name.compareTo(another.package_name);
+        }catch (NullPointerException e){
+
+        }
+
+        return 0;
     }
 
     @Override
