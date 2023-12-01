@@ -73,7 +73,6 @@ public class MyActivityInfo implements Comparable<MyActivityInfo> {
     public int compareTo(MyActivityInfo another) {
         int cmp_name = this.name.compareTo(another.name);
         if (cmp_name != 0) return cmp_name;
-
         return this.component_name.compareTo(another.component_name);
     }
 

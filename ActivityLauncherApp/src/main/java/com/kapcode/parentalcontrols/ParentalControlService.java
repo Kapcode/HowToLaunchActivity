@@ -118,12 +118,7 @@ public class ParentalControlService extends Service {
                     // you can use this to test watch dog, or to simulate end of work
                     System.out.println(loop);
                     loop--;
-
-
-
                     VolumeControl.keepVolumeAtOrBelowMaxPercent(context);
-
-
                     try {//should block plex app.
                         String task = getForegroundTask();
                         //System.out.println(task);
