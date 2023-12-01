@@ -123,7 +123,9 @@ public class ParentalControlService extends Service {
                         String task = getForegroundTask();
                         //System.out.println(task);
 
-                        if (task != null && taskMap_BLOCKED.get(task)) {
+                        if (task != null && taskMap_BLOCKED.get(task)) {//todo NULLPOINTEREXCEPTION ?java.lang.NullPointerException: Attempt to invoke virtual method 'boolean java.lang.Boolean.booleanValue()' on a null object reference
+                            //at com.kapcode.parentalcontrols.ParentalControlService$1.run(ParentalControlService.java:126)
+                            //at java.lang.Thread.run(Thread.java:764)
                             //the value is a boolean, true means app is blocked.
                             //Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
                             //false means app is okay.
@@ -254,48 +256,51 @@ public class ParentalControlService extends Service {
 
         }
     }
-
+    public static List<PackageInfo> installedPackages;
     public static void resolve(Context context) {
         MainActivity.layoutToPutInstalledAppInfoInto.removeAllViews();
         pm = context.getPackageManager();
         PackageManagerCache cache = PackageManagerCache.getPackageManagerCache(pm);
-        List<PackageInfo> all_packages = pm.getInstalledPackages(0);
+        List<PackageInfo> l = pm.getInstalledPackages(0);
+        if(installedPackages == null || l!=installedPackages){//only continue if a change to installed packages has happened.
+            installedPackages=l;
+            Configuration locale = SettingsUtils.createLocaleConfiguration("English");
+            packages = new ArrayList<>(installedPackages.size());
+            ArrayList<String> failedPackagesList = new ArrayList<>();
+            for (int i = 0; i < installedPackages.size(); ++i) {
+                PackageInfo pack = installedPackages.get(i);
+                MyPackageInfo mypack;
 
-        Configuration locale = SettingsUtils.createLocaleConfiguration("English");
-        packages = new ArrayList<>(all_packages.size());
-        ArrayList<String> failedPackagesList = new ArrayList<>();
-        for (int i = 0; i < all_packages.size(); ++i) {
-            PackageInfo pack = all_packages.get(i);
-            MyPackageInfo mypack;
+                mypack = cache.getPackageInfo(pack.packageName, locale);
+                if(mypack==null){
 
-            mypack = cache.getPackageInfo(pack.packageName, locale);
-            if(mypack==null){
 
-                
-               // try {  //No name on raw html, all in java script :(
+                    // try {  //No name on raw html, all in java script :(
                     //String html = HTML.downloadHTML("https://play.google.com/store/apps/details?id=" + pack.packageName, 3000);
                     //System.out.println(pack.packageName+"\n"+html);
-                //} catch (InterruptedException e) {
-                    
-                //}
-                
+                    //} catch (InterruptedException e) {
+
+                    //}
+
 
                     /*
                     one option is to grab the app name from the web off the play store.
                     */
 
-                failedPackagesList.add(pack.packageName);
-            }else{
-                if (mypack.getActivitiesCount() > 0) {
-                    packages.add(mypack);
+                    failedPackagesList.add(pack.packageName);
+                }else{
+                    if (mypack.getActivitiesCount() > 0) {
+                        packages.add(mypack);
+                    }
                 }
-            }
 
+
+            }
+            Collections.sort(packages);
+            ParentalControlService.failedPackagesList =failedPackagesList;
+            ParentalControlService.all_packages = packages;
 
         }
-        Collections.sort(packages);
-        ParentalControlService.failedPackagesList =failedPackagesList;
-        ParentalControlService.all_packages = packages;
         MainActivity.handler.post(new Runnable() {
             @Override
             public void run() {
@@ -303,6 +308,7 @@ public class ParentalControlService extends Service {
                 MainActivity.progressBar(false);
             }
         });
+
     }
 
     public static void populateLayoutWithPackageInformation(Context context) {//use loaded packages information to populate bottom layout

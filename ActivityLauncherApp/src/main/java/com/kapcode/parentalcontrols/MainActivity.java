@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Filterable filterTarget = null;
     private String filter = "";
     public static LinearLayout layoutToPutInstalledAppInfoInto;
-    public static View startButton,activitiesHidden,permissionsButton;
+    public static View startButton,activitiesHidden,permissionsButton,stopButton;
     public static int screenHeight,screenWidth;
     TextView maxVolumeValueTextView;
     @Override
@@ -69,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         activitiesHidden = findViewById(R.id.activitiesToggle);
         permissionsButton = findViewById(R.id.grantPermissionButton);
         maxVolumeValueTextView = findViewById(R.id.maxVolumePercentValueTextView);
+        stopButton = findViewById(R.id.stopParentalControlButton);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         //getBaseContext().getResources().updateConfiguration(config,
                // getBaseContext().getResources().getDisplayMetrics());
 
-        stopParentalControlButtonButton(null);
+        //stopParentalControlButtonButton(null);
 
 
     }
@@ -142,11 +143,21 @@ public class MainActivity extends AppCompatActivity {
                 if(show){
                     activitiesHidden.setEnabled(false);
                     startButton.setEnabled(false);
+                    stopButton.setEnabled(false);
                     permissionsButton.setEnabled(false);
                     p.setVisibility(View.VISIBLE);
                 }else {
                     activitiesHidden.setEnabled(true);
-                    startButton.setEnabled(true);
+
+                    if(!ParentalControlService.serviceIsRunning.get()){
+                        startButton.setEnabled(true);
+                        stopButton.setEnabled(false);
+                    }else{
+                        stopButton.setEnabled(true);
+                        startButton.setEnabled(false);
+                    }
+
+
                     permissionsButton.setEnabled(true);
                     p.setVisibility(View.GONE);
                 }
