@@ -14,11 +14,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.text.InputType;
 import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -165,9 +168,24 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+    public void pinDialog(){
+        AlertDialog.Builder pinAuth = new AlertDialog.Builder(this);
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.dialog_pin, null);
+
+        pinAuth.setTitle("PIN required.");
+        pinAuth.setCancelable(false);
+        pinAuth.setView(view);
+
+        final EditText pin = (EditText) view.findViewById(R.id.editTextNumber);
+        pin.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+    }
+
 
     public void startParentalControlButtonButton(View v){//KYLE PROSPERT
         //watchDog starts the Alarm, Watching the service
+
+
         ParentalControlService.startService(this);
         findViewById(R.id.startParentalControlButton).setEnabled(false);
         findViewById(R.id.stopParentalControlButton).setEnabled(true);
