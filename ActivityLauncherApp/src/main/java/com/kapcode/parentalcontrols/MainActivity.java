@@ -13,16 +13,16 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.Checkable;
 import android.widget.Filterable;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -49,30 +49,26 @@ public class MainActivity extends AppCompatActivity {
     private Filterable filterTarget = null;
     private String filter = "";
     public static LinearLayout layoutToPutInstalledAppInfoInto;
-
+    public static View startButton,activitiesHidden,permissionsButton;
     public static int screenHeight,screenWidth;
+    TextView maxVolumeValueTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         var prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-
         SettingsUtils.setTheme(prefs.getString("theme", "0"));
-
-
-
         if (!prefs.contains("hide_hide_private")) {
             prefs.edit().putBoolean("hide_hide_private", false).apply();
         }
-
         if (!prefs.contains("language")) {
             prefs.edit().putString("language", "System Default").apply();
         }
-
-
-
-
         setContentView(R.layout.activity_main);
+        seekBarSetup();
+        startButton = findViewById(R.id.startParentalControlButton);
+        activitiesHidden = findViewById(R.id.activitiesToggle);
+        permissionsButton = findViewById(R.id.grantPermissionButton);
+        maxVolumeValueTextView = findViewById(R.id.maxVolumePercentValueTextView);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
@@ -105,15 +101,53 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
+    public void seekBarSetup(){
+
+        SeekBar seekBar = findViewById(R.id.seekBar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                maxVolumeValueTextView.setText(seekBar.getProgress()+"%");
+                VolumeControl.setMax_percent_volume(seekBar.getProgress());
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+
+    }
+
+
+    public void volumeButtonOnClick(View view){
+        Button b = (Button) view;
+        int vol = Integer.parseInt(b.getText().toString().replace("%",""));
+
+        SeekBar seekBar = findViewById(R.id.seekBar);
+        seekBar.setProgress(vol);
+    }
     public static void progressBar(boolean show){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
-            public void run() {
-                ProgressBar p = mainActivity.findViewById(R.id.progressBar);
-
+            public void run() {//hide all UI that can interrupt resolve() and populate() or take user away from app until done.
+                ProgressBar p = mainActivity.findViewById(R.id.volumeMaxProgressBar);
                 if(show){
+                    activitiesHidden.setEnabled(false);
+                    startButton.setEnabled(false);
+                    permissionsButton.setEnabled(false);
                     p.setVisibility(View.VISIBLE);
                 }else {
+                    activitiesHidden.setEnabled(true);
+                    startButton.setEnabled(true);
+                    permissionsButton.setEnabled(true);
                     p.setVisibility(View.GONE);
                 }
             }

@@ -41,6 +41,135 @@
         android:layout_above="@id/centerMarker"
         android:background="#7A42BA">
 
+        <HorizontalScrollView
+            android:id="@+id/volumeButtonsScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/startParentalControlButton">
+
+            <LinearLayout
+                android:id="@+id/volumeButtonsLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/fifteen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="15%" />
+
+                <Button
+                    android:id="@+id/twentyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="25%" />
+
+                <Button
+                    android:id="@+id/thirtyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="35%" />
+
+                <Button
+                    android:id="@+id/fortyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="45%" />
+
+                <Button
+                    android:id="@+id/fiftyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="55%" />
+
+                <Button
+                    android:id="@+id/sixtyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="65%" />
+
+                <Button
+                    android:id="@+id/seventyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="75%" />
+
+                <Button
+                    android:id="@+id/eightyfive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="85%" />
+
+                <Button
+                    android:id="@+id/nintyfive2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="95%" />
+
+                <Button
+                    android:id="@+id/onehundred"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:onClick="volumeButtonOnClick"
+                    android:text="100%" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/maxVolumePercentValueTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/seekBar"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/maxVolumeLimitTextView"
+            android:text="75%"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/maxVolumeLimitTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/seekBar"
+            android:layout_centerHorizontal="true"
+            android:text="Volume Limit"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/top_centerMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/volumeButtonsScroll"
+            android:layout_alignLeft="@id/volumeButtonsScroll"
+            android:layout_alignRight="@id/volumeButtonsScroll"
+            android:layout_marginBottom="10dp"
+            android:max="100"
+            android:progress="75" />
+
         <CheckBox
             android:id="@+id/checkAllVisible"
             android:layout_width="50dp"
@@ -56,6 +185,10 @@
             android:id="@+id/activitiesToggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/grantPermissionButton"
+            android:layout_alignRight="@id/grantPermissionButton"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
             android:onClick="activitiesToggle"
             android:text="ToggleButton"
             android:textOff="Activities Hidden"
@@ -67,6 +200,7 @@
             android:layout_height="wrap_content"
             android:layout_above="@id/grantPermissionButton"
             android:layout_alignLeft="@id/grantPermissionButton"
+            android:layout_alignRight="@id/top_centerMark"
             android:layout_marginBottom="10dp"
             android:onClick="startParentalControlButtonButton"
             android:text="Start" />
@@ -76,6 +210,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@id/grantPermissionButton"
+            android:layout_alignLeft="@id/top_centerMark"
             android:layout_alignRight="@id/grantPermissionButton"
             android:layout_marginBottom="10dp"
             android:onClick="stopParentalControlButtonButton"
@@ -85,13 +220,13 @@
             android:id="@+id/grantPermissionButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_above="@id/activitiesToggle"
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
+            android:layout_alignParentBottom="false"
             android:layout_centerInParent="true"
             android:layout_marginLeft="60dp"
             android:layout_marginRight="60dp"
-            android:layout_marginBottom="20dp"
             android:onClick="grantAccessButton"
             android:text="Grant Permission" />
 
@@ -105,7 +240,7 @@
         android:visibility="invisible" />
 
     <ProgressBar
-        android:id="@+id/progressBar"
+        android:id="@+id/volumeMaxProgressBar"
         style="?android:attr/progressBarStyle"
         android:layout_width="100dp"
         android:layout_height="100dp"

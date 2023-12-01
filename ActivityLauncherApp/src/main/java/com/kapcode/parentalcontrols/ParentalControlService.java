@@ -109,6 +109,7 @@ public class ParentalControlService extends Service {
                 .build();
         startForeground(ID_SERVICE, notification);
         super.onCreate();
+        Context context = s.getApplication().getApplicationContext();
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -117,9 +118,15 @@ public class ParentalControlService extends Service {
                     // you can use this to test watch dog, or to simulate end of work
                     System.out.println(loop);
                     loop--;
+
+
+
+                    VolumeControl.keepVolumeAtOrBelowMaxPercent(context);
+
+
                     try {//should block plex app.
                         String task = getForegroundTask();
-                        System.out.println(task);
+                        //System.out.println(task);
 
                         if (task != null && taskMap_BLOCKED.get(task)) {
                             //the value is a boolean, true means app is blocked.
