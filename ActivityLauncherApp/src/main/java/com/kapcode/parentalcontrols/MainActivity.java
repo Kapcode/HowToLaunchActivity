@@ -1,5 +1,7 @@
 package com.kapcode.parentalcontrols;
 
+import static android.app.PendingIntent.getActivity;
+
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
@@ -14,19 +16,20 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
-import android.text.InputType;
 import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Filterable;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
@@ -52,7 +55,10 @@ public class MainActivity extends AppCompatActivity {
     private Filterable filterTarget = null;
     private String filter = "";
     public static LinearLayout layoutToPutInstalledAppInfoInto;
-    public static View startButton,activitiesHidden,permissionsButton,stopButton;
+    public static View startButton,activitiesHidden,permissionsButton,stopButton, pin_layout;
+    Button enterButton;
+    HorizontalScrollView horiz_scrollView;
+    public static TextView pin_instructions,pin_textView;
     public static int screenHeight,screenWidth;
     TextView maxVolumeValueTextView;
     @Override
@@ -73,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
         permissionsButton = findViewById(R.id.grantPermissionButton);
         maxVolumeValueTextView = findViewById(R.id.maxVolumePercentValueTextView);
         stopButton = findViewById(R.id.stopParentalControlButton);
+        enterButton = (Button) findViewById(R.id.numbPadEnter);
+        pin_layout =findViewById(R.id.numpad_layout);
+        pin_instructions = (TextView) findViewById(R.id.pin_instructions);
+        pin_textView = (TextView) findViewById(R.id.pin_textView);
+        horiz_scrollView = (android.widget.HorizontalScrollView) findViewById(R.id.horiz_scrollView);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
@@ -145,11 +156,13 @@ public class MainActivity extends AppCompatActivity {
                 ProgressBar p = mainActivity.findViewById(R.id.volumeMaxProgressBar);
                 if(show){
                     activitiesHidden.setEnabled(false);
+                    pin_layout.setVisibility(View.GONE);
                     startButton.setEnabled(false);
                     stopButton.setEnabled(false);
                     permissionsButton.setEnabled(false);
                     p.setVisibility(View.VISIBLE);
                 }else {
+                    pin_layout.setVisibility(View.GONE);
                     activitiesHidden.setEnabled(true);
 
                     if(!ParentalControlService.serviceIsRunning.get()){
@@ -168,36 +181,108 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-    public void pinDialog(){
-        AlertDialog.Builder pinAuth = new AlertDialog.Builder(this);
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View view = inflater.inflate(R.layout.dialog_pin, null);
 
-        pinAuth.setTitle("PIN required.");
-        pinAuth.setCancelable(false);
-        pinAuth.setView(view);
+    public void askForPin(){
+        pin_layout.setVisibility(View.VISIBLE);
+        horiz_scrollView.setVisibility(View.GONE);
+        pin1[0]=0;
+        pin_textView.setText("");
+        pin_instructions.setText("Please enter your pin. If you forgot it, just restart your device!");
+        enterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(Integer.parseInt(pin_textView.getText().toString())==ParentalControlService.pin){
+                    ParentalControlService.stopService();
+                    findViewById(R.id.startParentalControlButton).setEnabled(true);
+                    findViewById(R.id.stopParentalControlButton).setEnabled(false);
+                    horiz_scrollView.setVisibility(View.VISIBLE);
+                    pin_layout.setVisibility(View.GONE);
+                }else{
+                    pin_instructions.setText("Incorrect pin! If you forgot it, just restart your device!");
+                    makeMeShake(pin_instructions,50,5);
+                }
 
-        final EditText pin = (EditText) view.findViewById(R.id.editTextNumber);
-        pin.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+            }
+        });
+
+
+
+
     }
 
+
+    public void createPin(){
+        pin_layout.setVisibility(View.VISIBLE);
+        pin1[0]=0;
+        pin_instructions.setText("Type a 4 digit pin.");
+        makeMeShake(pin_instructions,50,5);
+        horiz_scrollView.setVisibility(View.GONE);
+        pin_textView.setText("");
+        enterButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                        if (pin1[0]==0) {
+                            pin1[0]=Integer.parseInt(pin_textView.getText().toString());
+                            pin_instructions.setText("Please re-type new pin to confirm.");
+                            makeMeShake(pin_instructions,50,5);
+                            pin_textView.setText("");
+                        }else{
+                            //second time through, lets make sure they match up
+                            if(pin1[0]==Integer.parseInt(pin_textView.getText().toString())){
+                                ParentalControlService.pin=pin1[0];
+                                System.out.println("PINS MATCH");
+                                pin_instructions.setText("Type a 4 digit pin.");
+                                ParentalControlService.startService(activity);
+                                findViewById(R.id.startParentalControlButton).setEnabled(false);
+                                findViewById(R.id.stopParentalControlButton).setEnabled(true);
+                                ParentalControlService.alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+                                ParentalControlService.watchDog(ParentalControlService.alarmManager,activity);
+                                horiz_scrollView.setVisibility(View.GONE);
+                                pin_textView.setText("");
+                                activity.finish();
+                                // no need to keep all the views in memory!
+                            }else{
+                                pin_instructions.setText("Pins did not Match! Type a 4 digit pin.");
+                                makeMeShake(pin_instructions,50,5);
+                                pin1[0]=0;
+                                pin_textView.setText("");
+                                System.out.println("PINS DO NOT MATCH");
+                            }
+
+                        }
+            }
+        });
+
+    }
+    final int[] pin1 = new int[1];
+    public void numpadOnClick(View view){
+        Button b = (Button) view;
+            if(pin_textView.length()==4){
+                makeMeShake(pin_instructions,50,5);
+                Toast.makeText(activity, "4 Digits!",
+                        Toast.LENGTH_LONG).show();
+            }else{
+                pin_textView.setText(pin_textView.getText().toString()+b.getText().toString());
+            }
+    }
+
+    //Windless
+    //https://stackoverflow.com/questions/9448732/shaking-wobble-view-animation-in-android
+    public static View makeMeShake(View view, int duration, int offset) {
+        Animation anim = new TranslateAnimation(-offset,offset,0,0);
+        anim.setDuration(duration);
+        anim.setRepeatMode(Animation.REVERSE);
+        anim.setRepeatCount(5);
+        view.startAnimation(anim);
+        return view;
+    }
 
     public void startParentalControlButtonButton(View v){//KYLE PROSPERT
         //watchDog starts the Alarm, Watching the service
-
-
-        ParentalControlService.startService(this);
-        findViewById(R.id.startParentalControlButton).setEnabled(false);
-        findViewById(R.id.stopParentalControlButton).setEnabled(true);
-        ParentalControlService.alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        ParentalControlService.watchDog(ParentalControlService.alarmManager,this);
-        layoutToPutInstalledAppInfoInto.setVisibility(View.GONE);
+        createPin();
     }
     public void stopParentalControlButtonButton(View v){//KYLE PROSPERT
-        ParentalControlService.stopService();
-        findViewById(R.id.startParentalControlButton).setEnabled(true);
-        findViewById(R.id.stopParentalControlButton).setEnabled(false);
-        layoutToPutInstalledAppInfoInto.setVisibility(View.VISIBLE);
+        askForPin();
     }
 
     @Override
@@ -231,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
         //stopParentalControlButtonButton(null);//always stop when resuming
     }
 

@@ -51,7 +51,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import de.szalkowski.activitylauncher.R;
 
 public class ParentalControlService extends Service {
-    static final int pollRate = 2000;
+    public static int pin = 1234;
+    static final int pollRate = 200;
     public static ArrayList<ViewGroup> activitiesViewGroupList,packagesViewGroupList;
     public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher",
             NOVA_LAUNCHER="com.teslacoilsw.launcher/com.teslacoilsw.launcher.NovaLauncher";
