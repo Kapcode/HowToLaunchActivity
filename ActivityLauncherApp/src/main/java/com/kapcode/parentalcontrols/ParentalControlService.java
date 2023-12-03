@@ -52,6 +52,7 @@ import de.szalkowski.activitylauncher.R;
 
 public class ParentalControlService extends Service {
     public static int pin = 1234;
+    public static int startDelay = 8000;
     static final int pollRate = 200;
     public static ArrayList<ViewGroup> activitiesViewGroupList,packagesViewGroupList;
     public static String AMAZON_FIRE_LAUNCHER = "com.amazon.firelauncher/com.amazon.firelauncher.Launcher",
@@ -75,8 +76,6 @@ public class ParentalControlService extends Service {
     //NEW IMPORTS //TODO WEED OUT
     static PackageManager pm;
     private static ArrayList<String> failedPackagesList;
-    LayoutInflater inflater;
-    static SharedPreferences prefs;
     static List<MyPackageInfo> packages;
 
     @Override
@@ -96,25 +95,36 @@ public class ParentalControlService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        Context context = s.getApplication().getApplicationContext();
         System.out.println("Start");
         serviceStoppedByUser.set(false);
         serviceIsRunning.set(true);
         System.out.println("Service Create");
         // Create the Foreground Service
+        PendingIntent penitent = PendingIntent.getActivity(context, 1, new Intent(getBaseContext(), MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
-        Notification notification = notificationBuilder.setOngoing(true)
+        Notification notif = notificationBuilder.setOngoing(true).setContentIntent(penitent)
                 .setPriority(Notification.PRIORITY_MAX)
-                .setCategory(NotificationCompat.CATEGORY_SERVICE).setContentText("Text")
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setContentTitle("Parental Control").setContentText("service is running...").setContentInfo("")
+                .setSmallIcon(R.drawable.ic_launcher_lock_foreground)
                 .build();
-        startForeground(ID_SERVICE, notification);
+        startForeground(ID_SERVICE, notif);
         super.onCreate();
-        Context context = s.getApplication().getApplicationContext();
         serviceThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int loop = 10000;//test watchdog
+                // prevent
+                //Going home Because of com.amazon.alexa.multimodal.gemini
+                //notification sending user home
+                try {
+                    Thread.sleep(startDelay);
+                } catch (InterruptedException ignore) {
+
+                }
                 while (serviceIsRunning.get()) { //loop counting down to 0 is simulating android killing off service, or end of work,
                     // you can use this to test watch dog, or to simulate end of work
                     System.out.println(loop);
@@ -130,8 +140,9 @@ public class ParentalControlService extends Service {
                             //the value is a boolean, true means app is blocked.
                             //Launcher.launchActivity(s.getApplication().getApplicationContext(), launcher);
                             //false means app is okay.
+
                             goHome();
-                            System.out.println("Going home!");
+                            System.out.println("Going home Because of "+ task);
                         }
 
                         //chosen from ui, derived from ComponentName.unflattenFromString()

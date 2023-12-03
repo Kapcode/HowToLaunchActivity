@@ -56,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     private String filter = "";
     public static LinearLayout layoutToPutInstalledAppInfoInto;
     public static View startButton,activitiesHidden,permissionsButton,stopButton, pin_layout;
+    static SeekBar volumeSeekBar;
+    static Button fifteen,twentyFive,thirtyFive,fortyFive,fiftyFive,sixtyFive,seventyFive,eightyFive,nintyfive,onehundred;
+
     Button enterButton;
     HorizontalScrollView horiz_scrollView;
     public static TextView pin_instructions,pin_textView;
@@ -84,6 +87,17 @@ public class MainActivity extends AppCompatActivity {
         pin_instructions = (TextView) findViewById(R.id.pin_instructions);
         pin_textView = (TextView) findViewById(R.id.pin_textView);
         horiz_scrollView = (android.widget.HorizontalScrollView) findViewById(R.id.horiz_scrollView);
+         twentyFive = findViewById(R.id.twentyfive);
+         fifteen=findViewById(R.id.fifteen);
+         thirtyFive = findViewById(R.id.thirtyfive);
+         fortyFive = findViewById(R.id.fortyfive);
+         fiftyFive = findViewById(R.id.fiftyfive);
+         sixtyFive = findViewById(R.id.sixtyfive);
+         seventyFive = findViewById(R.id.seventyfive);
+         eightyFive = findViewById(R.id.eightyfive);
+         nintyfive = findViewById(R.id.nintyfive2);
+         onehundred = findViewById(R.id.onehundred);
+        volumeSeekBar = (SeekBar) findViewById(R.id.seekBar);
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenHeight = displayMetrics.heightPixels;
@@ -170,6 +184,7 @@ public class MainActivity extends AppCompatActivity {
                         stopButton.setEnabled(false);
                     }else{
                         stopButton.setEnabled(true);
+                        setVolumeControlViewsEnabled(false);
                         startButton.setEnabled(false);
                     }
 
@@ -179,7 +194,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     public void askForPin(){
@@ -188,19 +202,29 @@ public class MainActivity extends AppCompatActivity {
         pin1[0]=0;
         pin_textView.setText("");
         pin_instructions.setText("Please enter your pin. If you forgot it, just restart your device!");
+        makeMeShake(pin_instructions,50,5);
         enterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(Integer.parseInt(pin_textView.getText().toString())==ParentalControlService.pin){
-                    ParentalControlService.stopService();
-                    findViewById(R.id.startParentalControlButton).setEnabled(true);
-                    findViewById(R.id.stopParentalControlButton).setEnabled(false);
-                    horiz_scrollView.setVisibility(View.VISIBLE);
-                    pin_layout.setVisibility(View.GONE);
+                if (pin_textView.getText().toString().length() == 4) {
+                    if(Integer.parseInt(pin_textView.getText().toString())==ParentalControlService.pin){
+                        ParentalControlService.stopService();
+                        findViewById(R.id.startParentalControlButton).setEnabled(true);
+                        findViewById(R.id.stopParentalControlButton).setEnabled(false);
+                        setVolumeControlViewsEnabled(true);
+                        horiz_scrollView.setVisibility(View.VISIBLE);
+                        pin_layout.setVisibility(View.GONE);
+                    }else{
+                        pin_textView.setText("");
+                        pin_instructions.setText("Incorrect pin! If you forgot it, just restart your device!");
+                        makeMeShake(pin_instructions,50,5);
+                    }
                 }else{
-                    pin_instructions.setText("Incorrect pin! If you forgot it, just restart your device!");
                     makeMeShake(pin_instructions,50,5);
+                    Toast.makeText(activity, "4 Digits!",
+                            Toast.LENGTH_LONG).show();
                 }
+
 
             }
         });
@@ -221,35 +245,46 @@ public class MainActivity extends AppCompatActivity {
         enterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                        if (pin1[0]==0) {
-                            pin1[0]=Integer.parseInt(pin_textView.getText().toString());
-                            pin_instructions.setText("Please re-type new pin to confirm.");
-                            makeMeShake(pin_instructions,50,5);
-                            pin_textView.setText("");
-                        }else{
-                            //second time through, lets make sure they match up
-                            if(pin1[0]==Integer.parseInt(pin_textView.getText().toString())){
-                                ParentalControlService.pin=pin1[0];
-                                System.out.println("PINS MATCH");
-                                pin_instructions.setText("Type a 4 digit pin.");
-                                ParentalControlService.startService(activity);
-                                findViewById(R.id.startParentalControlButton).setEnabled(false);
-                                findViewById(R.id.stopParentalControlButton).setEnabled(true);
-                                ParentalControlService.alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-                                ParentalControlService.watchDog(ParentalControlService.alarmManager,activity);
-                                horiz_scrollView.setVisibility(View.GONE);
-                                pin_textView.setText("");
-                                activity.finish();
-                                // no need to keep all the views in memory!
-                            }else{
-                                pin_instructions.setText("Pins did not Match! Type a 4 digit pin.");
-                                makeMeShake(pin_instructions,50,5);
-                                pin1[0]=0;
-                                pin_textView.setText("");
-                                System.out.println("PINS DO NOT MATCH");
-                            }
+                if (pin_textView.getText().toString().length() == 4) {
 
-                        }
+
+                if (pin1[0] == 0) {
+                    pin1[0] = Integer.parseInt(pin_textView.getText().toString());
+                    pin_instructions.setText("Please re-type new pin to confirm.");
+                    makeMeShake(pin_instructions, 50, 5);
+                    pin_textView.setText("");
+                } else {
+                    //second time through, lets make sure they match up
+                    if (pin1[0] == Integer.parseInt(pin_textView.getText().toString())) {
+                        ParentalControlService.pin = pin1[0];
+                        System.out.println("PINS MATCH");
+                        pin_instructions.setText("Type a 4 digit pin.");
+                        pin_textView.setText("");
+                        ParentalControlService.startService(activity);
+                        findViewById(R.id.startParentalControlButton).setEnabled(false);
+                        findViewById(R.id.stopParentalControlButton).setEnabled(true);
+                        ParentalControlService.alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                        ParentalControlService.watchDog(ParentalControlService.alarmManager, activity);
+                        setVolumeControlViewsEnabled(false);
+                        pin_layout.setVisibility(View.GONE);
+                        horiz_scrollView.setVisibility(View.GONE);
+
+                        //activity.finish();
+                        // no need to keep all the views in memory!
+                    } else {
+                        pin_instructions.setText("Pins did not Match! Type a 4 digit pin.");
+                        makeMeShake(pin_instructions, 50, 5);
+                        pin1[0] = 0;
+                        pin_textView.setText("");
+                        System.out.println("PINS DO NOT MATCH");
+                    }
+
+                }
+            }else{
+                    makeMeShake(pin_instructions,50,5);
+                    Toast.makeText(activity, "4 Digits!",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -258,6 +293,8 @@ public class MainActivity extends AppCompatActivity {
     public void numpadOnClick(View view){
         Button b = (Button) view;
             if(pin_textView.length()==4){
+
+                //pin_textView.setText(pin_textView.getText().toString().substring(0, pin_textView.getText().toString().length() - 1));
                 makeMeShake(pin_instructions,50,5);
                 Toast.makeText(activity, "4 Digits!",
                         Toast.LENGTH_LONG).show();
@@ -444,6 +481,21 @@ public class MainActivity extends AppCompatActivity {
         catch (IOException e) {
             //System.out.println("Exception"+ "File write failed: " + e.toString());
         }
+    }
+    
+    public static void setVolumeControlViewsEnabled(Boolean enabled){
+        volumeSeekBar.setEnabled(enabled);
+        fifteen.setEnabled(enabled);
+         twentyFive.setEnabled(enabled);
+         thirtyFive.setEnabled(enabled);
+         fortyFive.setEnabled(enabled);
+         fiftyFive.setEnabled(enabled);
+         sixtyFive.setEnabled(enabled);
+         seventyFive.setEnabled(enabled);
+         eightyFive.setEnabled(enabled);
+         nintyfive.setEnabled(enabled);
+         onehundred.setEnabled(enabled);
+
     }
 
 
